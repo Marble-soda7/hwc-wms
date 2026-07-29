@@ -1,0 +1,28 @@
+# ========== IDE ==========
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# ========== Maven ==========
+target/
+*.jar
+*.war
+
+# ========== Node ==========
+node_modules/
+dist/
+
+# ========== Logs ==========
+*.log
+logs/
+
+# ========== OS ==========
+.DS_Store
+Thumbs.db
+
+# ========== Claude Code ==========
+.claude/
+CLAUDE.md
