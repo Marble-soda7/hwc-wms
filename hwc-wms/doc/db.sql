@@ -19,6 +19,7 @@ CREATE TABLE `warehouse` (
     `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
     `name` VARCHAR(100) NOT NULL COMMENT '仓库名称',
     `code` VARCHAR(50) NOT NULL COMMENT '仓库编码',
+    `country` VARCHAR(100) DEFAULT NULL COMMENT '国家',
     `address` VARCHAR(255) DEFAULT NULL COMMENT '仓库地址',
     `contact` VARCHAR(50) DEFAULT NULL COMMENT '联系人',
     `phone` VARCHAR(20) DEFAULT NULL COMMENT '联系电话',
