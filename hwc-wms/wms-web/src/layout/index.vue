@@ -53,6 +53,16 @@
             <template #title>库位管理</template>
           </el-menu-item>
         </el-sub-menu>
+        <el-sub-menu index="settings">
+          <template #title>
+            <el-icon><Tools /></el-icon>
+            <span>设置</span>
+          </template>
+          <el-menu-item index="/category">
+            <el-icon><Menu /></el-icon>
+            <template #title>商品分类</template>
+          </el-menu-item>
+        </el-sub-menu>
       </el-menu>
     </el-aside>
 

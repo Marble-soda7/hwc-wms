@@ -47,6 +47,12 @@ export const constantRoutes = [
         component: () => import('@/views/location/index.vue'),
         meta: { title: '库位管理', icon: 'MapLocation' }
       },
+      {
+        path: 'category',
+        name: 'Category',
+        component: () => import('@/views/category/index.vue'),
+        meta: { title: '商品分类', icon: 'Menu' }
+      },
       // 入库管理
       {
         path: 'inbound',
