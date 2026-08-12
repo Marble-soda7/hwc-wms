@@ -21,13 +21,13 @@
     <el-table :data="tableData" v-loading="loading" border stripe>
       <el-table-column prop="id" label="ID" width="60" />
       <el-table-column prop="skuCode" label="SKU编码" width="130" />
-      <el-table-column prop="name" label="商品名称" min-width="150" show-overflow-tooltip />
+      <el-table-column prop="name" label="商品名称" min-width="180" />
       <el-table-column label="商品分类" width="100">
         <template #default="{ row }">
           {{ categoryMap[row.categoryId] || '-' }}
         </template>
       </el-table-column>
-      <el-table-column label="货主/客户" width="120" show-overflow-tooltip>
+      <el-table-column label="货主/客户" width="160">
         <template #default="{ row }">
           {{ customerMap[row.customerId] || '-' }}
         </template>
@@ -78,123 +78,18 @@
       />
     </div>
 
-    <!-- 新增/编辑弹窗 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="isEdit ? '编辑商品' : '新增商品'"
-      width="700px"
-      :close-on-click-modal="false"
-    >
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="SKU编码" prop="skuCode">
-              <el-input v-model="form.skuCode" disabled />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="商品名称" prop="name">
-              <el-input v-model="form.name" placeholder="请输入商品名称" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="货主/客户" prop="customerId">
-              <el-select v-model="form.customerId" placeholder="请选择客户" style="width: 100%">
-                <el-option
-                  v-for="c in customerList"
-                  :key="c.id"
-                  :label="c.name"
-                  :value="c.id"
-                />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="商品分类" prop="categoryId">
-              <el-select v-model="form.categoryId" placeholder="请选择分类" style="width: 100%">
-                <el-option
-                  v-for="c in flatCategoryList"
-                  :key="c.id"
-                  :label="c.label"
-                  :value="c.id"
-                />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="计量单位">
-              <el-input v-model="form.unit" placeholder="个/箱/件/托" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="条码">
-              <el-input v-model="form.barcode" placeholder="商品条码" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="重量(kg)">
-              <el-input-number v-model="form.weight" :precision="3" :step="0.1" :min="0" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="申报单价(元)">
-              <el-input-number v-model="form.unitPrice" :precision="2" :step="0.01" :min="0" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="8">
-            <el-form-item label="长(cm)">
-              <el-input-number v-model="form.length" :precision="2" :step="1" :min="0" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="宽(cm)">
-              <el-input-number v-model="form.width" :precision="2" :step="1" :min="0" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="高(cm)">
-              <el-input-number v-model="form.height" :precision="2" :step="1" :min="0" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="安全库存">
-              <el-input-number v-model="form.safetyStock" :step="1" :min="0" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="状态" prop="status">
-              <el-radio-group v-model="form.status">
-                <el-radio :label="1">启用</el-radio>
-                <el-radio :label="0">禁用</el-radio>
-              </el-radio-group>
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
-      <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">确定</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { pageProducts, addProduct, updateProduct, deleteProduct, getNextSkuCode } from '@/api/product'
+import { pageProducts, deleteProduct } from '@/api/product'
 import { listCustomers } from '@/api/customer'
 import { getCategoryTree } from '@/api/category'
+
+const router = useRouter()
 
 // ========== 查询 & 分页 ==========
 const keyword = ref('')
@@ -246,116 +141,13 @@ function loadRefData() {
   })
 }
 
-// ========== 弹窗 & 表单 ==========
-const dialogVisible = ref(false)
-const isEdit = ref(false)
-const formRef = ref(null)
-const submitLoading = ref(false)
-const customerList = ref([])
-const flatCategoryList = ref([])
-
-const form = reactive({
-  id: null,
-  skuCode: '',
-  name: '',
-  customerId: null,
-  categoryId: null,
-  unit: '个',
-  barcode: '',
-  weight: null,
-  length: null,
-  width: null,
-  height: null,
-  unitPrice: null,
-  safetyStock: 0,
-  status: 1
-})
-
-const rules = {
-  name: [{ required: true, message: '请输入商品名称', trigger: 'blur' }],
-  customerId: [{ required: true, message: '请选择客户', trigger: 'change' }]
-}
-
-function resetForm() {
-  form.id = null
-  form.skuCode = ''
-  form.name = ''
-  form.customerId = null
-  form.categoryId = null
-  form.unit = '个'
-  form.barcode = ''
-  form.weight = null
-  form.length = null
-  form.width = null
-  form.height = null
-  form.unitPrice = null
-  form.safetyStock = 0
-  form.status = 1
-}
-
-function loadDialogRefData() {
-  // 客户下拉选项
-  listCustomers().then(res => {
-    customerList.value = res.data
-  })
-  // 分类下拉选项（展平树为带缩进的列表）
-  getCategoryTree().then(res => {
-    const flat = []
-    res.data.forEach(parent => {
-      flat.push({ id: parent.id, label: parent.name })
-      if (parent.children) {
-        parent.children.forEach(child => {
-          flat.push({ id: child.id, label: '　├ ' + child.name })
-        })
-      }
-    })
-    flatCategoryList.value = flat
-  })
-}
-
+// ========== 新增/编辑（跳转独立表单页） ==========
 function handleAdd() {
-  isEdit.value = false
-  resetForm()
-  loadDialogRefData()
-  getNextSkuCode().then(res => {
-    form.skuCode = res.data
-  })
-  dialogVisible.value = true
+  router.push('/product/edit')
 }
 
 function handleEdit(row) {
-  isEdit.value = true
-  loadDialogRefData()
-  form.id = row.id
-  form.skuCode = row.skuCode
-  form.name = row.name
-  form.customerId = row.customerId
-  form.categoryId = row.categoryId
-  form.unit = row.unit || '个'
-  form.barcode = row.barcode || ''
-  form.weight = row.weight
-  form.length = row.length
-  form.width = row.width
-  form.height = row.height
-  form.unitPrice = row.unitPrice
-  form.safetyStock = row.safetyStock || 0
-  form.status = row.status
-  dialogVisible.value = true
-}
-
-async function handleSubmit() {
-  const valid = await formRef.value.validate().catch(() => false)
-  if (!valid) return
-
-  submitLoading.value = true
-  const api = isEdit.value ? updateProduct : addProduct
-  api(form)
-    .then(() => {
-      ElMessage.success(isEdit.value ? '修改成功' : '新增成功')
-      dialogVisible.value = false
-      loadData()
-    })
-    .finally(() => { submitLoading.value = false })
+  router.push(`/product/edit/${row.id}`)
 }
 
 // ========== 删除 ==========

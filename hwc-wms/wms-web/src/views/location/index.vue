@@ -34,7 +34,7 @@
     <!-- 数据表格 -->
     <el-table :data="tableData" v-loading="loading" border stripe>
       <el-table-column prop="id" label="ID" width="60" />
-      <el-table-column label="所属仓库" width="150" show-overflow-tooltip>
+      <el-table-column label="所属仓库" width="150">
         <template #default="{ row }">
           {{ warehouseMap[row.warehouseId] || '-' }}
         </template>
@@ -76,86 +76,17 @@
       />
     </div>
 
-    <!-- 新增/编辑弹窗 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="isEdit ? '编辑库位' : '新增库位'"
-      width="600px"
-      :close-on-click-modal="false"
-    >
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="90px">
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="所属仓库" prop="warehouseId">
-              <el-select v-model="form.warehouseId" placeholder="请选择仓库" style="width: 100%">
-                <el-option
-                  v-for="w in warehouseList"
-                  :key="w.id"
-                  :label="w.name"
-                  :value="w.id"
-                />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="库位编码" prop="code">
-              <el-input v-model="form.code" placeholder="如 A-01-01-01">
-                <template #append>
-                  <el-button @click="fillNextCode">自动</el-button>
-                </template>
-              </el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="区域">
-              <el-input v-model="form.zone" placeholder="如 A区" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="货道">
-              <el-input v-model="form.aisle" placeholder="如 01" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="货架">
-              <el-input v-model="form.shelf" placeholder="如 01" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="层">
-              <el-input v-model="form.level" placeholder="如 01" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="状态" prop="status">
-          <el-radio-group v-model="form.status">
-            <el-radio :label="1">空闲</el-radio>
-            <el-radio :label="2">占用</el-radio>
-            <el-radio :label="0">禁用</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <div class="code-hint">
-          <el-icon><InfoFilled /></el-icon>
-          建议编码格式：区域-货道-货架-层，如 A-01-01-01
-        </div>
-      </el-form>
-      <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">确定</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { pageLocations, addLocation, updateLocation, deleteLocation, getNextLocationCode } from '@/api/location'
+import { pageLocations, deleteLocation } from '@/api/location'
 import { listWarehouses } from '@/api/warehouse'
+
+const router = useRouter()
 
 // ========== 状态映射 ==========
 const statusMap = { 1: '空闲', 2: '占用', 0: '禁用' }
@@ -203,82 +134,13 @@ function loadWarehouses() {
   })
 }
 
-// ========== 弹窗 & 表单 ==========
-const dialogVisible = ref(false)
-const isEdit = ref(false)
-const formRef = ref(null)
-const submitLoading = ref(false)
-
-const form = reactive({
-  id: null,
-  warehouseId: null,
-  code: '',
-  zone: '',
-  aisle: '',
-  shelf: '',
-  level: '',
-  status: 1
-})
-
-const rules = {
-  warehouseId: [{ required: true, message: '请选择仓库', trigger: 'change' }],
-  code: [{ required: true, message: '请输入库位编码', trigger: 'blur' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'change' }]
-}
-
-function resetForm() {
-  form.id = null
-  form.warehouseId = null
-  form.code = ''
-  form.zone = ''
-  form.aisle = ''
-  form.shelf = ''
-  form.level = ''
-  form.status = 1
-}
-
-function fillNextCode() {
-  getNextLocationCode().then(res => {
-    form.code = res.data
-  })
-}
-
+// ========== 新增/编辑（跳转独立表单页） ==========
 function handleAdd() {
-  isEdit.value = false
-  resetForm()
-  // 预填编码
-  getNextLocationCode().then(res => {
-    form.code = res.data
-  })
-  dialogVisible.value = true
+  router.push('/location/edit')
 }
 
 function handleEdit(row) {
-  isEdit.value = true
-  form.id = row.id
-  form.warehouseId = row.warehouseId
-  form.code = row.code
-  form.zone = row.zone || ''
-  form.aisle = row.aisle || ''
-  form.shelf = row.shelf || ''
-  form.level = row.level || ''
-  form.status = row.status
-  dialogVisible.value = true
-}
-
-async function handleSubmit() {
-  const valid = await formRef.value.validate().catch(() => false)
-  if (!valid) return
-
-  submitLoading.value = true
-  const api = isEdit.value ? updateLocation : addLocation
-  api(form)
-    .then(() => {
-      ElMessage.success(isEdit.value ? '修改成功' : '新增成功')
-      dialogVisible.value = false
-      loadData()
-    })
-    .finally(() => { submitLoading.value = false })
+  router.push(`/location/edit/${row.id}`)
 }
 
 // ========== 删除 ==========

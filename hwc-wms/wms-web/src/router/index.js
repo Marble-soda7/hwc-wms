@@ -30,10 +30,22 @@ export const constantRoutes = [
         meta: { title: '仓库管理', icon: 'Odometer' }
       },
       {
+        path: 'warehouse/edit/:id?',
+        name: 'WarehouseEdit',
+        component: () => import('@/views/warehouse/form.vue'),
+        meta: { title: '仓库信息' }
+      },
+      {
         path: 'customer',
         name: 'Customer',
         component: () => import('@/views/customer/index.vue'),
         meta: { title: '客户管理', icon: 'User' }
+      },
+      {
+        path: 'customer/edit/:id?',
+        name: 'CustomerEdit',
+        component: () => import('@/views/customer/form.vue'),
+        meta: { title: '客户信息' }
       },
       {
         path: 'product',
@@ -42,16 +54,34 @@ export const constantRoutes = [
         meta: { title: '商品管理', icon: 'Goods' }
       },
       {
+        path: 'product/edit/:id?',
+        name: 'ProductEdit',
+        component: () => import('@/views/product/form.vue'),
+        meta: { title: '商品信息' }
+      },
+      {
         path: 'location',
         name: 'Location',
         component: () => import('@/views/location/index.vue'),
         meta: { title: '库位管理', icon: 'MapLocation' }
       },
       {
+        path: 'location/edit/:id?',
+        name: 'LocationEdit',
+        component: () => import('@/views/location/form.vue'),
+        meta: { title: '库位信息' }
+      },
+      {
         path: 'category',
         name: 'Category',
         component: () => import('@/views/category/index.vue'),
         meta: { title: '商品分类', icon: 'Menu' }
+      },
+      {
+        path: 'category/edit/:id?',
+        name: 'CategoryEdit',
+        component: () => import('@/views/category/form.vue'),
+        meta: { title: '分类信息' }
       },
       // 入库管理
       {

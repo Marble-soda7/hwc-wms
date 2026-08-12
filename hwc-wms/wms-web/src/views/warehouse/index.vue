@@ -23,7 +23,7 @@
       <el-table-column prop="code" label="仓库编码" width="130" />
       <el-table-column prop="name" label="仓库名称" width="180" />
       <el-table-column prop="country" label="国家" width="100" />
-      <el-table-column prop="address" label="仓库地址" min-width="180" show-overflow-tooltip />
+      <el-table-column prop="address" label="仓库地址" min-width="240" />
       <el-table-column prop="contact" label="联系人" width="100" />
       <el-table-column prop="phone" label="联系电话" width="130" />
       <el-table-column label="状态" width="80" align="center">
@@ -55,51 +55,16 @@
       />
     </div>
 
-    <!-- 新增/编辑弹窗 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="isEdit ? '编辑仓库' : '新增仓库'"
-      width="550px"
-      :close-on-click-modal="false"
-    >
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="90px">
-        <el-form-item label="仓库编码" prop="code">
-          <el-input v-model="form.code" disabled />
-        </el-form-item>
-        <el-form-item label="仓库名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入仓库中文名称" />
-        </el-form-item>
-        <el-form-item label="国家" prop="country">
-          <el-input v-model="form.country" placeholder="请输入国家" />
-        </el-form-item>
-        <el-form-item label="仓库地址">
-          <el-input v-model="form.address" placeholder="请输入仓库地址" />
-        </el-form-item>
-        <el-form-item label="联系人">
-          <el-input v-model="form.contact" placeholder="请输入联系人" />
-        </el-form-item>
-        <el-form-item label="联系电话">
-          <el-input v-model="form.phone" placeholder="请输入联系电话" />
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-radio-group v-model="form.status">
-            <el-radio :label="1">启用</el-radio>
-            <el-radio :label="0">禁用</el-radio>
-          </el-radio-group>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">确定</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { pageWarehouses, addWarehouse, updateWarehouse, deleteWarehouse, getNextCode } from '@/api/warehouse'
+import { pageWarehouses, deleteWarehouse } from '@/api/warehouse'
+
+const router = useRouter()
 
 // ========== 查询 & 分页 ==========
 const keyword = ref('')
@@ -124,75 +89,13 @@ function handleSearch() {
   loadData()
 }
 
-// ========== 弹窗 & 表单 ==========
-const dialogVisible = ref(false)
-const isEdit = ref(false)
-const formRef = ref(null)
-const submitLoading = ref(false)
-const form = reactive({
-  id: null,
-  code: '',
-  name: '',
-  country: '',
-  address: '',
-  contact: '',
-  phone: '',
-  status: 1
-})
-
-const rules = {
-  name: [{ required: true, message: '请输入仓库名称', trigger: 'blur' }],
-  country: [{ required: true, message: '请输入国家', trigger: 'blur' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'change' }]
-}
-
-function resetForm() {
-  form.id = null
-  form.code = ''
-  form.name = ''
-  form.country = ''
-  form.address = ''
-  form.contact = ''
-  form.phone = ''
-  form.status = 1
-}
-
+// ========== 新增/编辑（跳转独立表单页） ==========
 function handleAdd() {
-  isEdit.value = false
-  resetForm()
-  // 从后端获取下一个编码并显示
-  getNextCode().then(res => {
-    form.code = res.data
-  })
-  dialogVisible.value = true
+  router.push('/warehouse/edit')
 }
 
 function handleEdit(row) {
-  isEdit.value = true
-  form.id = row.id
-  form.code = row.code
-  form.name = row.name
-  form.country = row.country || ''
-  form.address = row.address || ''
-  form.contact = row.contact || ''
-  form.phone = row.phone || ''
-  form.status = row.status
-  dialogVisible.value = true
-}
-
-async function handleSubmit() {
-  const valid = await formRef.value.validate().catch(() => false)
-  if (!valid) return
-
-  submitLoading.value = true
-  const api = isEdit.value ? updateWarehouse : addWarehouse
-  api(form)
-    .then(() => {
-      ElMessage.success(isEdit.value ? '修改成功' : '新增成功')
-      dialogVisible.value = false
-      loadData()
-    })
-    .finally(() => { submitLoading.value = false })
+  router.push(`/warehouse/edit/${row.id}`)
 }
 
 // ========== 删除 ==========

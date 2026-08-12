@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * 库位 Service 实现
@@ -64,21 +65,22 @@ public class LocationServiceImpl extends ServiceImpl<LocationMapper, Location> i
 
     @Override
     public String getNextCode() {
+        // 只统计 KW+纯数字 格式的编码（区域化编码如 KW-A01-01-01 不参与自增）
         LambdaQueryWrapper<Location> wrapper = new LambdaQueryWrapper<>();
         wrapper.likeRight(Location::getCode, "KW");
-        wrapper.orderByDesc(Location::getCode);
-        wrapper.last("LIMIT 1");
-        Location lastLocation = locationMapper.selectOne(wrapper);
-
-        if (lastLocation == null || lastLocation.getCode() == null) {
-            return "KW00001";
+        List<Location> all = locationMapper.selectList(wrapper);
+        int maxNum = 0;
+        for (Location location : all) {
+            String code = location.getCode();
+            if (code != null && code.matches("KW\\d+")) {
+                try {
+                    maxNum = Math.max(maxNum, Integer.parseInt(code.substring(2)));
+                } catch (NumberFormatException ignored) {
+                    // 忽略格式异常编码，不影响生成
+                }
+            }
         }
-        try {
-            int nextNum = Integer.parseInt(lastLocation.getCode().substring(2)) + 1;
-            return "KW" + String.format("%05d", nextNum);
-        } catch (NumberFormatException e) {
-            throw new BusinessException("库位编码格式异常，请联系管理员");
-        }
+        return "KW" + String.format("%05d", maxNum + 1);
     }
 
     @Override
